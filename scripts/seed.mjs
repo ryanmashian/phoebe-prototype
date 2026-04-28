@@ -172,15 +172,23 @@ function phone() {
   return `(${randInt(212, 929)}) ${randInt(100, 999)}-${String(randInt(0, 9999)).padStart(4, "0")}`;
 }
 
+// Tuned so the 8 high-risk shifts in tomorrow's view all clear the 40-point
+// threshold under the new weights (no_show 25, hours 25, days 20, cont 15,
+// dist 10, weather 5). Headline drivers are hours-this-week and days-since-off,
+// not weather. See LOOM_SCRIPT.md and /about for narrative arc.
 const NAMED_CAREGIVERS = [
-  { name: "Yara Diallo",     zone: "Bronx-East",        no_show_30d: 2, completed_30d: 22, hours_week: 38, days_streak: 5, band: "B",     hire: "2022-08-14" },
-  { name: "Patrice Lemaire", zone: "Bronx-Fordham",     no_show_30d: 1, completed_30d: 19, hours_week: 32, days_streak: 4, band: "B",     hire: "2023-02-03" },
+  // Cluster A — Bronx burnout (transit just nudges them over)
+  { name: "Yara Diallo",     zone: "Bronx-East",        no_show_30d: 2, completed_30d: 22, hours_week: 44, days_streak: 6, band: "B",     hire: "2022-08-14" },
+  { name: "Patrice Lemaire", zone: "Bronx-Fordham",     no_show_30d: 2, completed_30d: 19, hours_week: 42, days_streak: 5, band: "B",     hire: "2023-02-03" },
   { name: "Rosalyn Pierre",  zone: "Bronx-Mott Haven",  no_show_30d: 3, completed_30d: 24, hours_week: 41, days_streak: 6, band: "watch", hire: "2021-11-22" },
+  // Cluster B — Brooklyn primaries deep into OT
   { name: "Maria Reyes",     zone: "Brooklyn-Crown Heights", no_show_30d: 1, completed_30d: 28, hours_week: 47, days_streak: 7, band: "A", hire: "2020-03-10" },
   { name: "Aisha Okonkwo",   zone: "Brooklyn-Bed Stuy",      no_show_30d: 2, completed_30d: 26, hours_week: 49, days_streak: 6, band: "B", hire: "2021-06-29" },
-  { name: "Beatrice Joseph", zone: "Brooklyn-Flatbush",      no_show_30d: 0, completed_30d: 24, hours_week: 44, days_streak: 8, band: "A", hire: "2019-09-04" },
-  { name: "Imelda Castillo", zone: "Brooklyn-East New York", no_show_30d: 1, completed_30d: 18, hours_week: 28, days_streak: 3, band: "B", hire: "2023-04-15" },
-  { name: "Carmen Hernández",zone: "Manhattan-Inwood",       no_show_30d: 2, completed_30d: 20, hours_week: 30, days_streak: 4, band: "B", hire: "2022-12-01" },
+  { name: "Beatrice Joseph", zone: "Brooklyn-Flatbush",      no_show_30d: 0, completed_30d: 24, hours_week: 46, days_streak: 8, band: "A", hire: "2019-09-04" },
+  // Cluster C — Continuity break: backups assigned with weak prior relationships
+  { name: "Imelda Castillo", zone: "Brooklyn-East New York", no_show_30d: 2, completed_30d: 18, hours_week: 38, days_streak: 5, band: "B", hire: "2023-04-15" },
+  { name: "Carmen Hernández",zone: "Manhattan-Inwood",       no_show_30d: 3, completed_30d: 20, hours_week: 36, days_streak: 5, band: "B", hire: "2022-12-01" },
+  // Backup pool — used in pre-warm chains, low-risk so they're plausibly available
   { name: "Fatou Sylla",     zone: "Bronx-East",        no_show_30d: 0, completed_30d: 22, hours_week: 30, days_streak: 2, band: "A", hire: "2021-05-18" },
   { name: "Leticia Almonte", zone: "Brooklyn-Crown Heights", no_show_30d: 0, completed_30d: 25, hours_week: 26, days_streak: 1, band: "A", hire: "2019-08-30" },
   { name: "Nadia Boateng",   zone: "Brooklyn-Bed Stuy",      no_show_30d: 1, completed_30d: 20, hours_week: 24, days_streak: 2, band: "A", hire: "2022-01-08" },
@@ -230,7 +238,7 @@ const NAMED_CLIENTS = [
   { name: "Mordecai Cohen",    zone: "Brooklyn-Crown Heights", plan: "HHA 8hr Mon-Fri",    primary: 4,  note: "Late-stage Alzheimer's. Routine matters." },
   { name: "Estelle DiNapoli",  zone: "Brooklyn-Bed Stuy",      plan: "Dementia care 8hr daily", primary: 5,  note: "Spouse is primary contact." },
   { name: "Solomon Hayes",     zone: "Brooklyn-Flatbush",      plan: "HHA 6hr daily",      primary: 6,  note: "Diabetic — meal log required." },
-  { name: "Constance Levine",  zone: "Brooklyn-East New York", plan: "HHA 4hr daily",      primary: 13, note: "Primary on PTO Wed-Fri. Backup needed." },
+  { name: "Constance Levine",  zone: "Bronx-East",             plan: "HHA 4hr daily",      primary: 13, note: "Primary on PTO Wed-Fri. Backup pulled from Brooklyn — long commute, no prior relationship." },
   { name: "Reginald Brown",    zone: "Manhattan-Inwood",       plan: "Live-in support 6 days", primary: 14, note: "Primary out sick. Backup needed." },
 ];
 

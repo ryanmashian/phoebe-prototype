@@ -1,16 +1,17 @@
-# Sentinel — pre-shift risk for the Phoebe scheduling agent
+# Sentinel — pre-warmed backups for the Phoebe scheduling agent
 
-A portfolio prototype. Twelve hours ahead of the callout, not after it.
+A portfolio prototype. A multiplier on reactive coverage, not a replacement.
 
 ## The wedge
 
 [Phoebe](https://phoebe.work) automates *reactive* callout coverage today: when a
 caregiver calls out, the Scheduler agent texts and calls a chain of backups in seconds.
-Sentinel extends the same agent stack into *prevention*. It scores every shift the
-night before for callout risk, then hands the Scheduler a 3-deep chain of pre-warmed
-backups for the highest-risk shifts — quietly, before the call comes in.
+Sentinel makes that same reactive flow more effective. It scores every shift the
+night before for callout risk, then hands the Scheduler a 3-deep chain of *pre-warmed*
+backups for the highest-risk shifts. When the callout fires, the Scheduler is filling
+from a pool of already-confirmed people instead of cold-paging fifty.
 
-Same agents. New aim. No new product surface.
+Warmer pool. Higher fill rate. Shorter time-to-fill. Same agents.
 
 ## What's in here
 

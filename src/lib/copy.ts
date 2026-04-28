@@ -20,7 +20,7 @@ export const COPY = {
   banner: {
     headline: (high: number, prewarmed: number, attention: number) =>
       `${high} shift${high === 1 ? "" : "s"} at high callout risk tomorrow. ${prewarmed} pre-warmed. ${attention} need${attention === 1 ? "s" : ""} attention.`,
-    sub: "Sentinel watches the next 24 hours and pings the Scheduler before the call comes in.",
+    sub: "Pre-warming backups for tomorrow’s high-risk shifts — so when callouts fire, the reactive agent fills faster.",
   },
   filters: {
     all: "All zones",
@@ -50,18 +50,18 @@ export const COPY = {
   about: {
     title: "How Sentinel scores a shift",
     intro:
-      "Sentinel is a signal — a single number between 0 and 100 — that estimates the chance a shift won't happen as scheduled. It runs the night before and feeds the Phoebe Scheduler. It is not a forecast you act on by itself; it is a queue ranker.",
+      "Sentinel doesn’t replace the reactive Scheduler. It pre-warms the same backup chain twelve hours earlier — so when the callout fires, the Scheduler is filling from a pool of already-confirmed people instead of cold-paging fifty caregivers from scratch. Same agents. Warmer pool. Higher fill rate. Shorter time-to-fill.",
     notMl:
-      "There is no model training here. The score is a weighted sum of six factors a coordinator already tracks in their head. The point isn't novelty. The point is: the same Scheduler agent that fills callouts can be aimed before the callout, with a chain of named backups already pre-warmed.",
+      "There is no model training here. The score is a weighted sum of six factors a coordinator already tracks in their head. It’s a queue ranker, not a forecaster — its job is to surface which shifts are worth pre-warming tonight, not to predict callouts in absolute terms.",
     weightsTitle: "The six factors",
     methodologyTitle: "Methodology in plain English",
   },
   roi: {
-    headline: "If Sentinel prevents 1 in 4 callouts at this agency",
-    money: "$76K / year recovered",
-    contract: "≈ 50% of an annual Phoebe ACV at $150K",
+    headline: "Modeled outcome at a 200-client agency",
+    money: "$40–60K / year recovered",
+    contract: "≈ 30% of an annual Phoebe ACV at $150K",
     fineprint:
-      "Beacon: 60 caregivers, 14% monthly callout rate, $34 average revenue per shift, 22 working days × 24 shifts.",
+      "10% monthly callout rate × 30% predictable subset × 60% pre-warm conversion ≈ 1.8 percentage points of total shifts recovered. Reactive fill rate moves from ~75% to 90%+. Median time-to-fill drops below 5 minutes.",
   },
   pageTitles: {
     dashboard: "Tomorrow's risk view",

@@ -1,5 +1,6 @@
 import { BannerSummary } from "@/components/banner-summary";
 import { FilterBar } from "@/components/filter-bar";
+import { FramingBlock } from "@/components/framing-block";
 import { RoiFooter } from "@/components/roi-footer";
 import { ShiftTable } from "@/components/shift-table";
 import {
@@ -25,6 +26,8 @@ export default function DashboardPage() {
         attention={stats.needsAttention}
         advisories={advisories}
       />
+
+      <FramingBlock />
 
       <section className="rounded-xl border border-line bg-card overflow-hidden shadow-card">
         <FilterBar zones={zones} />

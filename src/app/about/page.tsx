@@ -68,9 +68,11 @@ export default function AboutPage() {
           </li>
           <li className="pl-5 relative">
             <span className="absolute left-0 top-2.5 size-1.5 rounded-full bg-accent" />
-            <strong className="text-ink font-medium">It’s a queue ranker, not a forecaster.</strong>{" "}
-            We’re not predicting which shift will fail. We’re sorting tomorrow’s
-            board so the highest-risk shifts go to the top of the Scheduler agent’s chain.
+            <strong className="text-ink font-medium">Multiplier on reactive, not replacement.</strong>{" "}
+            The Scheduler still does the work — Sentinel just hands it a warmer pool.
+            When the callout fires, the Scheduler is chasing pre-confirmed backups
+            instead of cold-paging fifty cold caregivers. Higher fill rate.
+            Shorter time-to-fill.
           </li>
           <li className="pl-5 relative">
             <span className="absolute left-0 top-2.5 size-1.5 rounded-full bg-accent" />
@@ -81,10 +83,12 @@ export default function AboutPage() {
           </li>
           <li className="pl-5 relative">
             <span className="absolute left-0 top-2.5 size-1.5 rounded-full bg-accent" />
-            <strong className="text-ink font-medium">Same agents, new aim.</strong>{" "}
-            No new product surface for the Phoebe team to support. Sentinel is a signal
-            that lives in the same coordinator dashboard, fires the same Scheduler agent,
-            and routes through the same SMS/voice infrastructure.
+            <strong className="text-ink font-medium">Same agents, same surface.</strong>{" "}
+            No new product for the Phoebe team to support. Sentinel is a signal
+            that lives in the same coordinator dashboard, fires the same Scheduler,
+            and routes through the same SMS/voice infrastructure. The reactive
+            coverage Phoebe ships today gets meaningfully better with a warmer pool
+            behind it.
           </li>
         </ul>
       </section>
@@ -96,7 +100,7 @@ export default function AboutPage() {
         <ul className="space-y-2 text-[14px] text-ink-muted">
           <li>— Not a chatbot.</li>
           <li>— Not a forecaster you act on alone.</li>
-          <li>— Not a replacement for the existing Phoebe Scheduler. It feeds it.</li>
+          <li>— Not a replacement for the reactive Scheduler. It’s a multiplier — the Scheduler still does the work, just from a warmer pool.</li>
           <li>— Not running off real PHI. This prototype uses synthetic data on a fictional agency.</li>
         </ul>
       </section>
@@ -107,8 +111,9 @@ export default function AboutPage() {
         </div>
         <p className="leading-relaxed">
           This prototype is a portfolio piece, not a product pitch. The wedge is the part
-          worth keeping: take the existing Phoebe agent stack — Scheduler, Receptionist, Timekeeper —
-          and aim them at the night before, not the morning of. Same agents. Earlier. Quieter.
+          worth keeping: the reactive coverage Phoebe ships today gets meaningfully better
+          when it has a pre-confirmed backup pool waiting. Same Scheduler. Same Receptionist.
+          Same Timekeeper. Same SMS and voice stack. Higher fill rate. Shorter time-to-fill.
         </p>
       </section>
     </div>
