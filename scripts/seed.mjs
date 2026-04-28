@@ -66,7 +66,9 @@ CREATE TABLE prewarm_chains (
   channel TEXT NOT NULL,
   pinged_at TEXT,
   responded_at TEXT,
-  response TEXT
+  response TEXT,
+  chain_status TEXT,
+  settled_at TEXT
 );
 
 CREATE TABLE callout_history (
@@ -85,10 +87,31 @@ CREATE TABLE weather_advisories (
   detail TEXT NOT NULL
 );
 
+CREATE TABLE daily_outcomes (
+  for_date TEXT PRIMARY KEY,
+  prewarmed_count INTEGER NOT NULL,
+  callout_count INTEGER NOT NULL,
+  filled_under_5min INTEGER NOT NULL,
+  missed INTEGER NOT NULL,
+  baseline_fill_minutes_no_prewarm INTEGER NOT NULL,
+  notes TEXT
+);
+
+CREATE TABLE agent_log (
+  id INTEGER PRIMARY KEY,
+  ts TEXT NOT NULL,
+  shift_id INTEGER REFERENCES shifts(id),
+  caregiver_id INTEGER REFERENCES caregivers(id),
+  event_type TEXT NOT NULL,
+  detail TEXT NOT NULL
+);
+
 CREATE INDEX idx_shifts_starts ON shifts(starts_at);
 CREATE INDEX idx_shifts_caregiver ON shifts(caregiver_id);
 CREATE INDEX idx_callouts_caregiver ON callout_history(caregiver_id);
+CREATE INDEX idx_callouts_date ON callout_history(shift_date);
 CREATE INDEX idx_prewarm_shift ON prewarm_chains(shift_id);
+CREATE INDEX idx_agent_log_ts ON agent_log(ts);
 `);
 
 const ZONES = [
@@ -257,13 +280,24 @@ while (nextClientId <= 200) {
   insertClient.run(nextClientId++, name, cgZone, pick(CARE_PLANS), cgId, pick(CLIENT_NOTES));
 }
 
-const NOW = new Date();
+// MUST stay in sync with src/lib/clock.ts NOW_ANCHOR.
+// Wednesday, April 29, 2026 — 7:14 AM EDT (UTC-4).
+const NOW_ANCHOR_ISO = "2026-04-29T11:14:00.000Z";
+const NOW = new Date(NOW_ANCHOR_ISO);
 
 function isoAt(daysFromNow, hour, minute = 0) {
-  const d = new Date(NOW);
-  d.setDate(NOW.getDate() + daysFromNow);
-  d.setHours(hour, minute, 0, 0);
-  return d.toISOString();
+  // Generates ISO timestamps in NYC local time (EDT, UTC-4 in late April).
+  // Used for shift starts_at and other wall-clock-anchored events.
+  const base = new Date(NOW);
+  base.setUTCDate(base.getUTCDate() + daysFromNow);
+  // EDT offset: hour 0 NY = hour 4 UTC.
+  base.setUTCHours(hour + 4, minute, 0, 0);
+  return base.toISOString();
+}
+
+function isoLastNight(hour, minute = 0) {
+  // Helper for agent log timestamps the night before NOW.
+  return isoAt(-1, hour, minute);
 }
 
 const insertShift = db.prepare(`
@@ -313,20 +347,238 @@ TOMORROW_SHIFTS.forEach((s) => {
 });
 
 const insertPrewarm = db.prepare(`
-  INSERT INTO prewarm_chains (shift_id, caregiver_id, position, channel, pinged_at, responded_at, response)
-  VALUES (?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO prewarm_chains
+    (shift_id, caregiver_id, position, channel, pinged_at, responded_at, response, chain_status, settled_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
-insertPrewarm.run(1, 9,  1, "sms",   isoAt(0, 21, 14), isoAt(0, 21, 17), "available");
-insertPrewarm.run(1, 11, 2, "sms",   isoAt(0, 21, 14), isoAt(0, 21, 22), "unavailable");
-insertPrewarm.run(1, 12, 3, "voice", isoAt(0, 21, 30), null,             "no_response");
+// ─── Tomorrow's pre-warm chains (illustrative — fire tonight at 9pm) ───
+// chain_status = "scheduled" means the Scheduler has these queued but they
+// haven't actually fired yet. The response data here is a forward-looking
+// projection used for the drill-down illustration; settled_at is null.
+insertPrewarm.run(1, 9,  1, "sms",   isoAt(0, 21, 14), isoAt(0, 21, 17), "available",   "scheduled", null);
+insertPrewarm.run(1, 11, 2, "sms",   isoAt(0, 21, 14), isoAt(0, 21, 22), "unavailable", "scheduled", null);
+insertPrewarm.run(1, 12, 3, "voice", isoAt(0, 21, 30), null,             "no_response", "scheduled", null);
 
-insertPrewarm.run(4, 10, 1, "sms",   isoAt(0, 19, 47), isoAt(0, 19, 51), "available");
-insertPrewarm.run(4, 11, 2, "sms",   isoAt(0, 19, 47), isoAt(0, 20, 12), "unavailable");
-insertPrewarm.run(4, 12, 3, "voice", isoAt(0, 20, 5),  isoAt(0, 20, 9),  "available");
+insertPrewarm.run(4, 10, 1, "sms",   isoAt(0, 19, 47), isoAt(0, 19, 51), "available",   "scheduled", null);
+insertPrewarm.run(4, 11, 2, "sms",   isoAt(0, 19, 47), isoAt(0, 20, 12), "unavailable", "scheduled", null);
+insertPrewarm.run(4, 12, 3, "voice", isoAt(0, 20, 5),  isoAt(0, 20, 9),  "available",   "scheduled", null);
 
-insertPrewarm.run(7, 12, 1, "sms",   isoAt(0, 18, 32), isoAt(0, 18, 36), "available");
-insertPrewarm.run(7, 10, 2, "voice", isoAt(0, 18, 50), isoAt(0, 18, 54), "available");
+insertPrewarm.run(7, 12, 1, "sms",   isoAt(0, 18, 32), isoAt(0, 18, 36), "available",   "scheduled", null);
+insertPrewarm.run(7, 10, 2, "voice", isoAt(0, 18, 50), isoAt(0, 18, 54), "available",   "scheduled", null);
+
+// ─── Today's shifts (Wednesday AM) — pre-warm fired LAST NIGHT ───
+// These power the morning state. Eight Wednesday shifts with chain outcomes
+// from Tuesday evening: 6 confirmed, 1 partial (last-position confirmed
+// late), 1 failed (chain came back empty → "needs you").
+const TODAY_NAMED_CLIENTS = [
+  { name: "Imelda Castillo",   zone: "Brooklyn-Crown Heights", plan: "HHA 6hr daily",      note: "Recent hospital discharge. Watch for fatigue." },
+  { name: "Carmen Hernández",  zone: "Brooklyn-Bed Stuy",      plan: "Companion 4hr Mon/Wed/Fri", note: "Mild cognitive impairment. Needs same caregiver if possible." },
+  { name: "Reginald Pierre",   zone: "Bronx-East",             plan: "HHA 8hr Mon-Fri",    note: "Diabetic — meal log required by 11am." },
+  { name: "Patrice Lemaire",   zone: "Brooklyn-Flatbush",      plan: "PCA 5hr daily",      note: "Daughter calls Sundays. Hard of hearing." },
+  { name: "Marisol Thiam",     zone: "Bronx-Mott Haven",       plan: "HHA 4hr daily",      note: "Walker assist. Building elevator broken since Tuesday." },
+  { name: "Cecilia Núñez",     zone: "Brooklyn-Crown Heights", plan: "Dementia care 8hr daily", note: "Spouse is primary contact." },
+  { name: "Theodore Rivera",   zone: "Bronx-Fordham",          plan: "HHA 6hr daily",      note: "Routine matters. Recent hospital readmission scare." },
+  { name: "Bertha Schwartz",   zone: "Manhattan-Inwood",       plan: "Live-in support 6 days", note: "Primary caregiver out indefinitely. Backup-only coverage this week." },
+];
+const TODAY_FIRST_CLIENT_ID = nextClientId;
+TODAY_NAMED_CLIENTS.forEach((c) => {
+  insertClient.run(nextClientId++, c.name, c.zone, c.plan, null, c.note);
+});
+
+// 8 today shifts. Caregivers 13–20 are the Wed AM roster (separate from
+// tomorrow's 1–8 hand-tuned set so the dataset reads as two real days).
+// Order: 6 confirmed-chain shifts, then partial, then failed (the latter
+// two are the morning-state "needs you" rows).
+const TODAY_SHIFTS = [
+  { caregiver: 13, hour: 7,  duration: 6, continuity: 1, chain_status: "confirmed" },
+  { caregiver: 14, hour: 8,  duration: 4, continuity: 1, chain_status: "confirmed" },
+  { caregiver: 15, hour: 8,  duration: 8, continuity: 1, chain_status: "confirmed" },
+  { caregiver: 16, hour: 9,  duration: 6, continuity: 1, chain_status: "confirmed" },
+  { caregiver: 17, hour: 9,  duration: 4, continuity: 0, chain_status: "confirmed" },
+  { caregiver: 18, hour: 10, duration: 6, continuity: 1, chain_status: "confirmed" },
+  { caregiver: 19, hour: 10, duration: 8, continuity: 1, chain_status: "partial"   },
+  { caregiver: 20, hour: 11, duration: 4, continuity: 0, chain_status: "failed"    },
+];
+
+const TODAY_FIRST_SHIFT_ID = shiftId;
+TODAY_SHIFTS.forEach((s, i) => {
+  const cg = db.prepare("SELECT zone FROM caregivers WHERE id = ?").get(s.caregiver);
+  const clientId = TODAY_FIRST_CLIENT_ID + i;
+  insertShift.run(
+    shiftId++, s.caregiver, clientId,
+    isoAt(0, s.hour), isoAt(0, s.hour + s.duration),
+    "scheduled", cg.zone, s.continuity, 1
+  );
+});
+
+// Pre-warm chains for today shifts. Each shift has a 3-deep chain pinged
+// last night between 9:30pm and 10:50pm. Outcomes per shift:
+//   - confirmed: position-1 said yes → chain confirmed at that response time
+//   - partial:   p1 unavailable, p2 unavailable, p3 available (late)
+//   - failed:    all three unavailable / no_response
+//
+// Backup-pool caregivers (50–60) are used so they don't collide with primaries.
+const BACKUP_POOL = [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60];
+
+function pingTime(baseHour, baseMinute, offsetMin) {
+  // baseHour is local NY hour (e.g., 21 = 9pm). Returns ISO with EDT offset.
+  const totalMin = baseMinute + offsetMin;
+  const addedHours = Math.floor(totalMin / 60);
+  const finalMin = totalMin % 60;
+  return isoLastNight(baseHour + addedHours, finalMin);
+}
+
+TODAY_SHIFTS.forEach((s, i) => {
+  const shiftIdNum = TODAY_FIRST_SHIFT_ID + i;
+  const [b1, b2, b3] = pickN(BACKUP_POOL.filter((id) => id !== s.caregiver), 3);
+  const baseHour = 21 + Math.floor(i / 3); // 21, 21, 21, 22, 22, 22, 23, 23
+  const baseMinute = (i % 3) * 17 + 4;
+
+  if (s.chain_status === "confirmed") {
+    // Sequential: position-1 pinged, said yes, chain settled. Position 2/3
+    // never reached (rows exist for the visual chain depth, no ping data).
+    const settle = pingTime(baseHour, baseMinute, 4);
+    insertPrewarm.run(shiftIdNum, b1, 1, "sms",
+      pingTime(baseHour, baseMinute, 0),
+      settle, "available", "confirmed", settle);
+    insertPrewarm.run(shiftIdNum, b2, 2, "sms",
+      null, null, null, "confirmed", settle);
+    insertPrewarm.run(shiftIdNum, b3, 3, "voice",
+      null, null, null, "confirmed", settle);
+  } else if (s.chain_status === "partial") {
+    // Sequential: p1 unavailable → p2 unavailable → p3 (voice) available late.
+    const settle = pingTime(baseHour, baseMinute, 31);
+    insertPrewarm.run(shiftIdNum, b1, 1, "sms",
+      pingTime(baseHour, baseMinute, 0),
+      pingTime(baseHour, baseMinute, 5), "unavailable", "partial", settle);
+    insertPrewarm.run(shiftIdNum, b2, 2, "sms",
+      pingTime(baseHour, baseMinute, 8),
+      pingTime(baseHour, baseMinute, 14), "unavailable", "partial", settle);
+    insertPrewarm.run(shiftIdNum, b3, 3, "voice",
+      pingTime(baseHour, baseMinute, 19),
+      pingTime(baseHour, baseMinute, 31), "available", "partial", settle);
+  } else { // failed
+    // Sequential: p1 unavailable → p2 unavailable → p3 voice no-response → escalation.
+    const settle = pingTime(baseHour, baseMinute, 38);
+    insertPrewarm.run(shiftIdNum, b1, 1, "sms",
+      pingTime(baseHour, baseMinute, 0),
+      pingTime(baseHour, baseMinute, 6), "unavailable", "failed", settle);
+    insertPrewarm.run(shiftIdNum, b2, 2, "sms",
+      pingTime(baseHour, baseMinute, 9),
+      pingTime(baseHour, baseMinute, 16), "unavailable", "failed", settle);
+    insertPrewarm.run(shiftIdNum, b3, 3, "voice",
+      pingTime(baseHour, baseMinute, 22),
+      null, "no_response", "failed", settle);
+  }
+});
+
+// ─── Agent log (Tuesday evening overnight) ───
+// Derived directly from the today-shift chain rows so the log is the
+// audit trail that makes the morning state and yesterday's outcomes
+// verifiable. Every log row maps to a real chain event.
+const insertAgentLog = db.prepare(`
+  INSERT INTO agent_log (ts, shift_id, caregiver_id, event_type, detail)
+  VALUES (?, ?, ?, ?, ?)
+`);
+
+// Kickoff event — Scheduler began the overnight pass.
+insertAgentLog.run(
+  isoLastNight(21, 0),
+  null,
+  null,
+  "kickoff",
+  "Sentinel ranked tomorrow's queue. 8 shifts flagged for pre-warm tonight."
+);
+
+// Pull all chain rows for today shifts (settled last night) ordered by ping time.
+const todayChainRows = db.prepare(`
+  SELECT pw.id, pw.shift_id, pw.caregiver_id, pw.position, pw.channel,
+         pw.pinged_at, pw.responded_at, pw.response, pw.chain_status, pw.settled_at,
+         cg.name as cg_name, cl.name as cl_name, s.starts_at
+  FROM prewarm_chains pw
+  JOIN caregivers cg ON cg.id = pw.caregiver_id
+  JOIN shifts s ON s.id = pw.shift_id
+  JOIN clients cl ON cl.id = s.client_id
+  WHERE pw.shift_id >= ?
+  ORDER BY pw.shift_id, pw.position
+`).all(TODAY_FIRST_SHIFT_ID);
+
+function shortFirst(name) {
+  return name.split(" ")[0];
+}
+
+// Walk each chain in shift order and emit log events.
+let currentShiftId = null;
+let currentChain = [];
+const settledByShift = new Map();
+
+for (const row of todayChainRows) {
+  if (row.shift_id !== currentShiftId) {
+    if (currentShiftId !== null) flushChain(currentShiftId, currentChain);
+    currentShiftId = row.shift_id;
+    currentChain = [];
+  }
+  currentChain.push(row);
+  if (row.settled_at) settledByShift.set(row.shift_id, { settled_at: row.settled_at, status: row.chain_status });
+}
+if (currentShiftId !== null) flushChain(currentShiftId, currentChain);
+
+function flushChain(shiftIdNum, rows) {
+  const settled = settledByShift.get(shiftIdNum);
+  for (const r of rows) {
+    if (r.pinged_at) {
+      insertAgentLog.run(
+        r.pinged_at, r.shift_id, r.caregiver_id, "ping",
+        `Pinged ${shortFirst(r.cg_name)} for ${shortFirst(r.cl_name)}'s shift via ${r.channel === "sms" ? "SMS" : "voice"}.`
+      );
+    }
+    if (r.responded_at) {
+      const eventType = r.response === "available" ? "response_available" : "response_unavailable";
+      const detailMap = {
+        available: `${shortFirst(r.cg_name)}: "yes I can take it" — available.`,
+        unavailable: `${shortFirst(r.cg_name)}: "can't make it tomorrow."`,
+      };
+      insertAgentLog.run(
+        r.responded_at, r.shift_id, r.caregiver_id, eventType,
+        detailMap[r.response] ?? `${shortFirst(r.cg_name)} responded ${r.response}.`
+      );
+    } else if (r.pinged_at && r.response === "no_response") {
+      // Add a "no response" event 8 minutes after ping for narrative pacing.
+      const t = new Date(r.pinged_at);
+      t.setMinutes(t.getMinutes() + 8);
+      insertAgentLog.run(
+        t.toISOString(), r.shift_id, r.caregiver_id, "no_response",
+        `${shortFirst(r.cg_name)} did not respond.`
+      );
+    }
+  }
+  // Settlement event at chain close.
+  if (settled) {
+    if (settled.status === "confirmed") {
+      const winner = rows.find((r) => r.response === "available");
+      if (winner) {
+        insertAgentLog.run(
+          settled.settled_at, shiftIdNum, winner.caregiver_id, "confirmed",
+          `${shortFirst(winner.cg_name)} confirmed. Chain handed to Scheduler.`
+        );
+      }
+    } else if (settled.status === "partial") {
+      const winner = rows.find((r) => r.response === "available");
+      if (winner) {
+        insertAgentLog.run(
+          settled.settled_at, shiftIdNum, winner.caregiver_id, "confirmed",
+          `${shortFirst(winner.cg_name)} confirmed at position ${winner.position}. Coordinator alert: chain went deep.`
+        );
+      }
+    } else if (settled.status === "failed") {
+      insertAgentLog.run(
+        settled.settled_at, shiftIdNum, null, "escalation",
+        `Chain came back empty. Escalating to coordinator before shift start.`
+      );
+    }
+  }
+}
 
 const PAST_REASONS = ["illness", "transit", "family", "no_reason_given"];
 const insertCallout = db.prepare(`
@@ -369,20 +621,86 @@ insertWeather.run(tomorrowDate, "Bronx-Mott Haven", "rain",    "0.4in expected, 
 insertWeather.run(tomorrowDate, "Bronx-East",       "transit", "1 train weekend service change — shuttle Dyckman → 242");
 insertWeather.run(tomorrowDate, "Bronx-Fordham",    "transit", "D train running on 4 line below 161");
 
+// ─── Daily outcomes (yesterday + 13 prior days) ───
+// callout_count is derived from the seeded callout_history per date.
+// prewarmed_count, filled_under_5min, missed, and baseline_fill_minutes
+// are tuned to match what the existing seed implies — pre-warm tends to
+// surface 6–9 risky shifts a night and catches roughly 60% of the
+// callouts that fire. Some days are uneven; they should be.
+const insertOutcome = db.prepare(`
+  INSERT INTO daily_outcomes
+    (for_date, prewarmed_count, callout_count, filled_under_5min, missed,
+     baseline_fill_minutes_no_prewarm, notes)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`);
+
+const dailyCalloutsRows = db.prepare(`
+  SELECT shift_date, COUNT(*) as n FROM callout_history
+  WHERE shift_date >= date(?, '-14 days') AND shift_date < date(?)
+  GROUP BY shift_date
+`).all(isoAt(0, 0).slice(0, 10), isoAt(0, 0).slice(0, 10));
+
+const calloutsByDate = new Map(dailyCalloutsRows.map((r) => [r.shift_date, r.n]));
+
+// Yesterday is the load-bearing row for the proof loop. Tuned to a believable
+// outcome that aligns with the morning-state copy.
+const yesterday = isoAt(-1, 0).slice(0, 10);
+insertOutcome.run(
+  yesterday,
+  7,                                           // prewarmed
+  calloutsByDate.get(yesterday) ?? 5,          // callouts (real or fallback)
+  Math.min(calloutsByDate.get(yesterday) ?? 5, 5), // filled <5min
+  0,                                           // missed
+  12,                                          // baseline minutes
+  "Quiet morning. Two of three pre-warm escalations resolved via Sade and Leticia."
+);
+
+// Prior 13 days. Variance is real — some days every callout was caught,
+// others one slipped. Baseline drifts 11–14 min depending on weather.
+const PRIOR_NOTES = [
+  null,
+  "Light rain in the Bronx. Two backups confirmed before the chain even reached p3.",
+  null,
+  "1-train service change pulled fill times up; pre-warm still caught all four.",
+  null,
+  null,
+  "One miss — Constance's primary called out at 6:55 AM; chain hadn't refreshed.",
+  null,
+  null,
+  null,
+  "Heavy callouts (8). Pre-warm pool held — only one needed manual reassignment.",
+  null,
+  null,
+];
+
+for (let d = 2; d <= 14; d++) {
+  const date = isoAt(-d, 0).slice(0, 10);
+  const callouts = calloutsByDate.get(date) ?? randInt(2, 6);
+  // pre-warm tends to slightly outpace callouts on most days
+  const prewarmed = Math.max(callouts + randInt(0, 3), 5);
+  const filled = Math.max(0, callouts - (rand() < 0.15 ? 1 : 0));
+  const missed = callouts - filled;
+  const baseline = 11 + randInt(0, 3);
+  insertOutcome.run(date, prewarmed, callouts, filled, missed, baseline, PRIOR_NOTES[d - 2]);
+}
+
 const counts = {
   caregivers: db.prepare("SELECT COUNT(*) as n FROM caregivers").get().n,
   clients: db.prepare("SELECT COUNT(*) as n FROM clients").get().n,
   shifts: db.prepare("SELECT COUNT(*) as n FROM shifts").get().n,
   tomorrow: db.prepare("SELECT COUNT(*) as n FROM shifts WHERE date(starts_at) = date(?)").get(isoAt(1, 0)).n,
+  today: db.prepare("SELECT COUNT(*) as n FROM shifts WHERE date(starts_at) = date(?)").get(isoAt(0, 0)).n,
   prewarm: db.prepare("SELECT COUNT(*) as n FROM prewarm_chains").get().n,
   callouts: db.prepare("SELECT COUNT(*) as n FROM callout_history").get().n,
+  outcomes: db.prepare("SELECT COUNT(*) as n FROM daily_outcomes").get().n,
 };
 
 console.log("Seeded sentinel.db:");
 console.log(`  ${counts.caregivers} caregivers`);
 console.log(`  ${counts.clients} clients`);
-console.log(`  ${counts.shifts} shifts (${counts.tomorrow} tomorrow)`);
+console.log(`  ${counts.shifts} shifts (${counts.today} today, ${counts.tomorrow} tomorrow)`);
 console.log(`  ${counts.prewarm} pre-warm entries`);
 console.log(`  ${counts.callouts} historical callouts`);
+console.log(`  ${counts.outcomes} daily outcomes`);
 
 db.close();

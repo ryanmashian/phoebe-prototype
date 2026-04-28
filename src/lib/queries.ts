@@ -1,5 +1,6 @@
 import { getDb } from "./db";
 import { scoreShift, bandFor, type ScoringContext } from "./risk-score";
+import { tomorrowDate } from "./clock";
 import type {
   Caregiver,
   Client,
@@ -10,9 +11,7 @@ import type {
 
 function buildScoringContext(): ScoringContext {
   const db = getDb();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = tomorrow.toISOString().slice(0, 10);
+  const dateStr = tomorrowDate();
 
   const advisories = db
     .prepare("SELECT zone, type FROM weather_advisories WHERE for_date = ?")
@@ -49,9 +48,7 @@ function scoredShiftFromRow(
 export function getTomorrowsShifts(): ScoredShift[] {
   const db = getDb();
   const ctx = buildScoringContext();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = tomorrow.toISOString().slice(0, 10);
+  const dateStr = tomorrowDate();
 
   const rows = db
     .prepare(
@@ -178,9 +175,7 @@ export function getZones(): string[] {
 
 export function getWeatherAdvisories(): Array<{ zone: string; type: string; detail: string }> {
   const db = getDb();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = tomorrow.toISOString().slice(0, 10);
+  const dateStr = tomorrowDate();
   return db
     .prepare(
       "SELECT zone, type, detail FROM weather_advisories WHERE for_date = ? ORDER BY zone, type"
