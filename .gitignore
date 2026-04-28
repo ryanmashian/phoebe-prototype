@@ -34,3 +34,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated db (rebuilt by `npm run seed` / `prebuild`)
+/data/sentinel.db
+/data/sentinel.db-shm
+/data/sentinel.db-wal
