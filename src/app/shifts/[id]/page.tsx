@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, MapPin, Clock, User, AlertTriangle } from "lucide-react";
 
-import { getShiftById, getTomorrowsShifts } from "@/lib/queries";
+import { getShiftById, getTodaysShifts, getTomorrowsShifts } from "@/lib/queries";
 import { RiskBadge, bandLabel } from "@/components/risk-badge";
 import { RiskBar } from "@/components/risk-bar";
 import { PreWarmChain } from "@/components/pre-warm-chain";
@@ -14,7 +14,9 @@ import { timeRange, lastInitial } from "@/lib/format";
 export const dynamic = "force-static";
 
 export function generateStaticParams() {
-  return getTomorrowsShifts().map((s) => ({ id: String(s.shift.id) }));
+  return [...getTodaysShifts(), ...getTomorrowsShifts()].map((s) => ({
+    id: String(s.shift.id),
+  }));
 }
 
 interface PageProps {
@@ -37,7 +39,7 @@ export default function ShiftDetailPage({ params }: PageProps) {
           className="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-accent"
         >
           <ChevronLeft className="size-3.5" />
-          back to tomorrow
+          back to dashboard
         </Link>
       </div>
 

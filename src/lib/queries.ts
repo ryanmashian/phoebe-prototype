@@ -1,6 +1,6 @@
 import { getDb } from "./db";
 import { scoreShift, bandFor, type ScoringContext } from "./risk-score";
-import { tomorrowDate } from "./clock";
+import { tomorrowDate, todayDate } from "./clock";
 import type {
   Caregiver,
   Client,
@@ -45,10 +45,9 @@ function scoredShiftFromRow(
   };
 }
 
-export function getTomorrowsShifts(): ScoredShift[] {
+function getShiftsForDate(dateStr: string): ScoredShift[] {
   const db = getDb();
   const ctx = buildScoringContext();
-  const dateStr = tomorrowDate();
 
   const rows = db
     .prepare(
@@ -162,8 +161,16 @@ export function getTomorrowsShifts(): ScoredShift[] {
   return scored;
 }
 
+export function getTomorrowsShifts(): ScoredShift[] {
+  return getShiftsForDate(tomorrowDate());
+}
+
+export function getTodaysShifts(): ScoredShift[] {
+  return getShiftsForDate(todayDate());
+}
+
 export function getShiftById(id: number): ScoredShift | null {
-  const all = getTomorrowsShifts();
+  const all = [...getTodaysShifts(), ...getTomorrowsShifts()];
   return all.find((s) => s.shift.id === id) ?? null;
 }
 
