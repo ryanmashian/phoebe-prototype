@@ -95,6 +95,44 @@ export default function AboutPage() {
 
       <section className="space-y-3">
         <h2 className="text-[18px] tracking-tightish font-medium text-ink">
+          What’s grounded — and what’s an assumption
+        </h2>
+        <div className="rounded-xl border border-line bg-card divide-y divide-line text-[13px] overflow-hidden">
+          <Row
+            claim="10% monthly callout rate baseline"
+            kind="grounded"
+            source="Activated Insights, 2024"
+          />
+          <Row
+            claim="75% reactive fill in <15 min"
+            kind="grounded"
+            source="phoebe.work, published"
+          />
+          <Row
+            claim="Hours-vs-ceiling and 6+ consecutive days as burnout drivers"
+            kind="grounded"
+            source="Frontiers in Health Services, 2023"
+          />
+          <Row
+            claim="% of callouts predictable from these six factors"
+            kind="assumption"
+            source="Phoebe's data answers"
+          />
+          <Row
+            claim="Pre-warm conversion rate on flagged shifts"
+            kind="assumption"
+            source="Phoebe's data answers"
+          />
+        </div>
+        <p className="text-[13px] text-ink-muted leading-relaxed">
+          The two assumptions are the load-bearing pieces. The prototype frames
+          the question; only Phoebe’s own data answers either. That’s the part
+          of the next conversation worth having.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-[18px] tracking-tightish font-medium text-ink">
           What this isn’t
         </h2>
         <ul className="space-y-2 text-[14px] text-ink-muted">
@@ -116,6 +154,32 @@ export default function AboutPage() {
           Same Timekeeper. Same SMS and voice stack. Higher fill rate. Shorter time-to-fill.
         </p>
       </section>
+    </div>
+  );
+}
+
+interface RowProps {
+  claim: string;
+  kind: "grounded" | "assumption";
+  source: string;
+}
+
+function Row({ claim, kind, source }: RowProps) {
+  const isGrounded = kind === "grounded";
+  return (
+    <div className="grid grid-cols-[1fr_auto] gap-4 px-4 py-3 items-baseline">
+      <div className="text-ink leading-snug">{claim}</div>
+      <div
+        className={
+          "text-[11px] uppercase tracking-[0.08em] whitespace-nowrap " +
+          (isGrounded ? "text-accent" : "text-ink-faint")
+        }
+      >
+        {isGrounded ? "grounded" : "assumption"}
+        <span className="text-ink-faint normal-case tracking-normal ml-1.5">
+          · {source}
+        </span>
+      </div>
     </div>
   );
 }

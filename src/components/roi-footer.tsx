@@ -13,9 +13,9 @@ export function RoiFooter({ highRiskCount }: RoiFooterProps) {
             Why this matters
           </div>
           <div className="text-[20px] leading-snug text-ink tracking-tightish max-w-[44ch]">
-            {COPY.roi.headline}: reactive fill rate{" "}
-            <span className="font-semibold">75% → 90%+</span>, median time-to-fill{" "}
-            <span className="font-semibold">below 5 min</span>.
+            {COPY.roi.headline}: a warmer pool behind the existing{" "}
+            <span className="font-semibold">75% reactive fill</span>, on the
+            night it matters most.
           </div>
           <p className="mt-2 text-[13px] text-ink-muted max-w-[60ch]">
             Sentinel multiplies the existing Scheduler. By pre-warming three backups
@@ -36,18 +36,18 @@ export function RoiFooter({ highRiskCount }: RoiFooterProps) {
 }
 
 function RoiCalc() {
-  const rows: Array<[string, string, string]> = [
-    ["Reactive fill rate", "~75% → 90%+", "before / after pre-warm"],
-    ["Monthly callout rate", "10%", "industry baseline"],
-    ["Predictable subset", "30%", "Sentinel flags night before"],
-    ["Pre-warm conversion", "60%", "of flagged shifts confirmed"],
-    ["Median time-to-fill", "< 5 min", "down from ~12 min"],
-    ["Net recovered revenue", "$40–60K", "/ year"],
+  const rows: Array<[string, string, string, "grounded" | "assumption"]> = [
+    ["Industry callout rate", "~10% / mo", "Activated Insights, 2024", "grounded"],
+    ["Phoebe reactive fill", "75% in <15m", "phoebe.work, published", "grounded"],
+    ["Caregiver turnover", "75% / yr", "HCAOA, 2024", "grounded"],
+    ["Absenteeism profit hit", ">15%", "Activated Insights", "grounded"],
+    ["Predictable subset (?)", "—", "your data answers", "assumption"],
+    ["Pre-warm conversion (?)", "—", "your data answers", "assumption"],
   ];
 
   return (
     <dl className="rounded-lg border border-line bg-card divide-y divide-line text-[12px]">
-      {rows.map(([k, v, sub], i) => (
+      {rows.map(([k, v, sub, kind]) => (
         <div
           key={k}
           className="flex items-baseline justify-between gap-3 px-3.5 py-2"
@@ -62,8 +62,8 @@ function RoiCalc() {
           </dt>
           <dd
             className={
-              "num text-ink " +
-              (i === rows.length - 1 ? "font-semibold text-accent text-[14px]" : "")
+              "num " +
+              (kind === "assumption" ? "text-ink-faint" : "text-ink")
             }
           >
             {v}

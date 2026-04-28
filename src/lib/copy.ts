@@ -57,11 +57,11 @@ export const COPY = {
     methodologyTitle: "Methodology in plain English",
   },
   roi: {
-    headline: "Modeled outcome at a 200-client agency",
-    money: "$40–60K / year recovered",
-    contract: "≈ 30% of an annual Phoebe ACV at $150K",
+    headline: "What pre-warming changes",
+    money: "tighter time-to-fill",
+    contract: "on the shifts the Scheduler is already going to chase hardest",
     fineprint:
-      "10% monthly callout rate × 30% predictable subset × 60% pre-warm conversion ≈ 1.8 percentage points of total shifts recovered. Reactive fill rate moves from ~75% to 90%+. Median time-to-fill drops below 5 minutes.",
+      "Industry callout rate runs ~10% / month (Activated Insights, 2024). Phoebe's reactive fill is 75% in <15 min today. Sentinel's open question: how much of the remaining 25% is predictable enough the night before to be worth pre-warming? Two assumptions drive the math — predictable subset and pre-warm conversion — and only Phoebe's own data answers either.",
   },
   pageTitles: {
     dashboard: "Tomorrow's risk view",
