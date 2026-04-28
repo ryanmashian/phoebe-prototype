@@ -15,9 +15,32 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://phoebe-prototype.vercel.app"),
   title: "Sentinel — Pre-Shift Risk for Phoebe",
   description:
-    "12 hours ahead of the callout. A predictive layer for the Phoebe scheduling agent.",
+    "12 hours ahead of the callout. A queue ranker for the Phoebe scheduling agent — pre-warms backups before the callout fires.",
+  openGraph: {
+    title: "Sentinel — Pre-Shift Risk for Phoebe",
+    description:
+      "Pre-warmed backups for the Phoebe Scheduler. Same agents. Warmer pool. Higher fill rate.",
+    url: "https://phoebe-prototype.vercel.app",
+    siteName: "Sentinel",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sentinel — Pre-Shift Risk for Phoebe",
+    description:
+      "Pre-warmed backups for the Phoebe Scheduler. Same agents. Warmer pool. Higher fill rate.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export const viewport = {
+  themeColor: "#FAF7F1",
 };
 
 export default function RootLayout({
