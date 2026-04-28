@@ -2,7 +2,7 @@
  * Centralized coordinator-voice strings.
  * Tone: terse, first-name basis, "we" not "the system",
  * never "AI", never "automation", never "smart".
- * Sentinel = the predictive signal. Scheduler = the existing Phoebe agent.
+ * Sentinel = the queue-ranker signal. Scheduler = the existing Phoebe agent.
  */
 
 export const COPY = {
@@ -78,6 +78,59 @@ export const COPY = {
     confirmed: (name: string) =>
       `${name} confirmed. Holding shift open as backup.`,
     nextStep: "Sentinel will only escalate if the primary actually misses check-in.",
+  },
+  morning: {
+    eyebrow: "this morning",
+    headline: (
+      weekday: string,
+      time: string,
+      prewarmed: number,
+      confirmed: number,
+      needsCount: number
+    ) =>
+      `${weekday}, ${time}. Last night, ${prewarmed} ${prewarmed === 1 ? "shift" : "shifts"} pre-warmed. ${confirmed} ${confirmed === 1 ? "chain" : "chains"} confirmed. ${needsCount} need${needsCount === 1 ? "s" : ""} you.`,
+    sub:
+      "These are the shifts the chain didn’t close cleanly. The Scheduler held the queue open. You take it from here.",
+    needsHeader: "Needs you",
+    rowFailed: "Chain came back empty. No backup confirmed.",
+    rowPartial: (name: string) =>
+      `Chain went deep — ${name} confirmed at position 3. Flag if continuity matters.`,
+    rowOpenShift: "Open shift",
+    rowMarkResolved: "Mark resolved",
+    emptyClean: "Quiet morning. Every chain settled cleanly overnight.",
+    emptyCleanSub:
+      "Sentinel handed the queue to the Scheduler. Nothing on you right now.",
+  },
+  yesterday: {
+    eyebrow: "yesterday",
+    primary: (
+      prewarmed: number,
+      callouts: number,
+      fillUnder5: number,
+      missed: number
+    ) =>
+      `${prewarmed} pre-warmed → ${callouts} callout${callouts === 1 ? "" : "s"} fired → ${fillUnder5} filled in <5 min → ${missed} missed.`,
+    baseline: (baselineMin: number) =>
+      `Without pre-warm, average fill across the past 14 days was ~${baselineMin} min.`,
+    methodology:
+      "Numbers derived from yesterday's shift outcomes. Baseline computed from non-prewarmed callouts in the last 14 days.",
+    rollingLabel: "14-day rolling",
+  },
+  activityLog: {
+    eyebrow: "last night",
+    title: "What the Scheduler did overnight",
+    sub:
+      "Every ping, every response, every chain handoff. The audit trail behind the morning state above.",
+    emptyState:
+      "Sentinel didn't pre-warm anything last night. The queue was clear.",
+  },
+  eveningPlanning: {
+    eyebrow: "evening planning",
+    title: "Tomorrow's risk view",
+    sub: (high: number) =>
+      `${high} shift${high === 1 ? "" : "s"} flagged for tonight's 9pm pre-warm. Filter, sort, drill in.`,
+    whenItFires:
+      "These will fire tonight. The Scheduler queues them at 9pm sharp.",
   },
 };
 

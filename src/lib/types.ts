@@ -44,6 +44,8 @@ export type Shift = {
   prewarmed: number;
 };
 
+export type ChainStatus = "scheduled" | "confirmed" | "partial" | "failed";
+
 export type PreWarmEntry = {
   id: number;
   shift_id: number;
@@ -53,6 +55,50 @@ export type PreWarmEntry = {
   pinged_at: string | null;
   responded_at: string | null;
   response: "available" | "unavailable" | "no_response" | null;
+  chain_status: ChainStatus | null;
+  settled_at: string | null;
+};
+
+export type AgentLogEvent = {
+  id: number;
+  ts: string;
+  shift_id: number | null;
+  caregiver_id: number | null;
+  event_type:
+    | "kickoff"
+    | "ping"
+    | "response_available"
+    | "response_unavailable"
+    | "no_response"
+    | "confirmed"
+    | "escalation";
+  detail: string;
+};
+
+export type DailyOutcome = {
+  for_date: string;
+  prewarmed_count: number;
+  callout_count: number;
+  filled_under_5min: number;
+  missed: number;
+  baseline_fill_minutes_no_prewarm: number;
+  notes: string | null;
+};
+
+export type NeedsAttentionRow = {
+  shift_id: number;
+  starts_at: string;
+  client_name: string;
+  caregiver_name: string;
+  zone: string;
+  chain_status: "partial" | "failed";
+  late_winner_name: string | null; // for partial: who came in at p3
+};
+
+export type MorningState = {
+  prewarmed_count: number;
+  confirmed_count: number;
+  needs_attention: NeedsAttentionRow[];
 };
 
 export type RiskFactor = {

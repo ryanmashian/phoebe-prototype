@@ -97,6 +97,8 @@ export function getTomorrowsShifts(): ScoredShift[] {
       pinged_at: r.pinged_at as string | null,
       responded_at: r.responded_at as string | null,
       response: r.response as PreWarmEntry["response"],
+      chain_status: r.chain_status as PreWarmEntry["chain_status"],
+      settled_at: r.settled_at as string | null,
       caregiver: {
         id: r.caregiver_id as number,
         name: r.cg_name as string,
