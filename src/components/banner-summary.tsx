@@ -20,19 +20,13 @@ export function BannerSummary({
   return (
     <section className="rounded-xl bg-card border border-line shadow-card overflow-hidden">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px]">
-        <div className="p-6 space-y-4">
-          <div className="flex items-center gap-2 text-[12px] uppercase tracking-[0.12em] text-ink-faint">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-accent live-dot" />
-            </span>
-            Sentinel — tomorrow’s risk
-          </div>
+        <div className="p-6 space-y-3">
           <div className="space-y-2">
-            <h1 className="text-[32px] leading-[1.1] tracking-tightish font-medium text-ink max-w-[24ch]">
+            <h2 className="text-[22px] leading-[1.15] tracking-tightish font-medium text-ink max-w-[26ch]">
               <span className="num">{highRisk}</span>{" "}
               {highRisk === 1 ? "shift" : "shifts"} at high callout risk tomorrow.
-            </h1>
-            <p className="text-ink-muted text-[15px] max-w-[60ch]">
+            </h2>
+            <p className="text-ink-muted text-[14px] max-w-[60ch]">
               <span className="num text-ink font-medium">{prewarmed}</span> pre-warmed.{" "}
               <span className="num text-ink font-medium">{attention}</span>{" "}
               {attention === 1 ? "needs" : "need"} attention.{" "}
@@ -42,7 +36,7 @@ export function BannerSummary({
         </div>
 
         <aside className="border-t lg:border-t-0 lg:border-l border-line bg-paper-deep/40 p-6 space-y-3">
-          <div className="text-[12px] uppercase tracking-[0.12em] text-ink-faint">
+          <div className="text-[11px] uppercase tracking-[0.12em] text-ink-faint">
             Tomorrow’s signals
           </div>
           <ul className="space-y-2.5 text-[13px] text-ink">

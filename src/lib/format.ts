@@ -1,10 +1,17 @@
 export function shortTime(iso: string): string {
+  // Pinned to America/New_York. The synthetic agency is in Brooklyn/Bronx,
+  // and Vercel's build server runs in UTC — without an explicit zone the
+  // production output would shift four hours from what's expected.
   const d = new Date(iso);
-  return d.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).replace(" ", "").toLowerCase();
+  return d
+    .toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "America/New_York",
+    })
+    .replace(" ", "")
+    .toLowerCase();
 }
 
 export function timeRange(startIso: string, endIso: string): string {
@@ -29,8 +36,12 @@ export function pct(n: number): string {
   return `${Math.round(n)}%`;
 }
 
+import { NOW_ANCHOR } from "./clock";
+
 export function relativeTime(iso: string, nowIso?: string): string {
-  const now = nowIso ? new Date(nowIso) : new Date();
+  // Default to the time-anchor, not wall clock. The prototype is statically
+  // built — every relative timestamp must read against the same "now".
+  const now = new Date(nowIso ?? NOW_ANCHOR);
   const t = new Date(iso);
   const diffMs = now.getTime() - t.getTime();
   const mins = Math.round(diffMs / 60000);
