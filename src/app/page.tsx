@@ -84,6 +84,12 @@ export default function DashboardPage() {
 
         <RoiFooter highRiskCount={stats.highRiskShifts} />
       </section>
+
+      {/* Production framing + timezone marker. Quiet, last-line treatment. */}
+      <footer className="pt-6 border-t border-line space-y-1.5 text-[12px] text-ink-faint leading-relaxed">
+        <p className="max-w-[80ch]">{COPY.ehr.footer}</p>
+        <p>{COPY.footer.timezone}</p>
+      </footer>
     </div>
   );
 }

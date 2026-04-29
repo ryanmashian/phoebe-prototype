@@ -52,7 +52,15 @@ export function MorningStateSection({ state, chainsByShiftId }: MorningStateProp
 
       <header className="space-y-3 max-w-[860px]">
         <h1 className="text-[34px] sm:text-[40px] tracking-tightish leading-[1.05] text-ink font-medium">
-          {COPY.morning.headline(weekday, time, state.prewarmed_count, state.confirmed_count, needsCount)}
+          {needsCount > 0
+            ? COPY.morning.headline(
+                weekday,
+                time,
+                state.prewarmed_count,
+                state.confirmed_count,
+                needsCount
+              )
+            : COPY.morning.headlineQuiet(weekday, time, state.prewarmed_count)}
         </h1>
         {needsCount > 0 ? (
           <p className="text-[14px] leading-relaxed text-ink-muted max-w-[60ch]">
@@ -149,7 +157,9 @@ function NeedsRow({
           </Link>
           <button
             type="button"
-            className="inline-flex items-center px-3 h-9 rounded-lg border border-line bg-paper text-ink-muted text-[13px] hover:text-ink hover:border-line-strong transition-colors"
+            aria-disabled="true"
+            title={COPY.drilldown.illustrative}
+            className="inline-flex items-center px-3 h-9 rounded-lg border border-line border-dashed bg-paper text-ink-faint text-[13px] cursor-not-allowed transition-colors"
           >
             {COPY.morning.rowMarkResolved}
           </button>

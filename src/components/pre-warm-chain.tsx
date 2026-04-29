@@ -105,7 +105,12 @@ export function PreWarmChain({ entries, variant = "full" }: PreWarmChainProps) {
         return (
           <li
             key={e.id}
-            className="flex items-start gap-3 rounded-lg border border-line bg-card p-3"
+            className={cn(
+              "flex items-start gap-3 rounded-lg border p-3",
+              isScheduled
+                ? "border-line border-dashed bg-paper-deep/30"
+                : "border-line bg-card"
+            )}
           >
             <span className="num text-[11px] text-ink-faint w-5 mt-0.5">#{e.position}</span>
             <div className="flex-1 min-w-0">

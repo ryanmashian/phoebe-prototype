@@ -94,27 +94,44 @@ export default function ShiftDetailPage({ params }: PageProps) {
 
           <Card title={COPY.drilldown.actionsTitle}>
             <div className="grid gap-2">
-              <Button variant="secondary" size="md" className="justify-start">
+              <Button
+                variant="secondary"
+                size="md"
+                className="justify-start cursor-not-allowed opacity-80"
+                aria-disabled="true"
+                title={COPY.drilldown.illustrative}
+              >
                 {COPY.drilldown.reassign}
               </Button>
-              <Button variant="ghost" size="md" className="justify-start">
+              <Button
+                variant="ghost"
+                size="md"
+                className="justify-start cursor-not-allowed opacity-80"
+                aria-disabled="true"
+                title={COPY.drilldown.illustrative}
+              >
                 <AlertTriangle className="size-3.5" />
                 {COPY.drilldown.escalate}
               </Button>
-              <Button variant="ghost" size="md" className="justify-start">
+              <Button
+                variant="ghost"
+                size="md"
+                className="justify-start cursor-not-allowed opacity-80"
+                aria-disabled="true"
+                title={COPY.drilldown.illustrative}
+              >
                 {COPY.drilldown.resolve}
               </Button>
             </div>
             <p className="text-[11px] text-ink-faint mt-3 leading-relaxed">
-              Demo prototype — actions are illustrative. In production these route
-              to the Phoebe Scheduler agent.
+              {COPY.drilldown.illustrative}
             </p>
           </Card>
 
           <Card title="Caregiver context" subtitle={`${caregiver.name} · band ${caregiver.reliability_band}`}>
             <dl className="space-y-1.5 text-[12px]">
               <Row label="Hours this week" value={`${caregiver.hours_this_week}h / ${caregiver.preferred_weekly_hours}h preferred`} />
-              <Row label="Days consecutive" value={`${caregiver.consecutive_days_worked}`} />
+              <Row label="Days since rest" value={`${caregiver.consecutive_days_worked}`} />
               <Row label="No-shows (30d)" value={`${caregiver.no_show_count_30d} of ${caregiver.shifts_completed_30d} shifts`} />
               <Row label="Hire date" value={caregiver.hire_date} />
               <Row label="Phone" value={caregiver.phone} />

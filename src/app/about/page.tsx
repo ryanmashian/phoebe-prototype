@@ -84,13 +84,23 @@ export default function AboutPage() {
           <li className="pl-5 relative">
             <span className="absolute left-0 top-2.5 size-1.5 rounded-full bg-accent" />
             <strong className="text-ink font-medium">Same agents, same surface.</strong>{" "}
-            No new product for the Phoebe team to support. Sentinel is a signal
-            that lives in the same coordinator dashboard, fires the same Scheduler,
-            and routes through the same SMS/voice infrastructure. The reactive
-            coverage Phoebe ships today gets meaningfully better with a warmer pool
-            behind it.
+            In production, Sentinel’s signal flows into the same Phoebe
+            coordinator surface — same agent stack (Receptionist, Scheduler,
+            Timekeeper, Engagement Specialist), same EHR (HHAeXchange and the
+            13 others Phoebe ships with), same SMS and voice channels. This
+            standalone build is a visualization of the signal so the scoring
+            logic and pre-warm chain are inspectable on their own.
           </li>
         </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-[18px] tracking-tightish font-medium text-ink">
+          {COPY.ehr.aboutTitle}
+        </h2>
+        <p className="text-[14px] leading-relaxed text-ink-muted max-w-[64ch]">
+          {COPY.ehr.aboutBody}
+        </p>
       </section>
 
       <section className="space-y-3">

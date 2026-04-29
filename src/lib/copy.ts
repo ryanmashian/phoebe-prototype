@@ -10,7 +10,7 @@ export const COPY = {
     product: "Sentinel",
     tagline: "12 hours ahead of the callout",
     company: "Phoebe",
-    agency: "Beacon Home Care — Brooklyn & Bronx",
+    agency: "Beacon Home Care — Brooklyn & Bronx (small-customer profile)",
   },
   nav: {
     today: "Today",
@@ -20,7 +20,7 @@ export const COPY = {
   banner: {
     headline: (high: number, prewarmed: number, attention: number) =>
       `${high} shift${high === 1 ? "" : "s"} at high callout risk tomorrow. ${prewarmed} pre-warmed. ${attention} need${attention === 1 ? "s" : ""} attention.`,
-    sub: "Pre-warming backups for tomorrow’s high-risk shifts — so when callouts fire, the reactive agent fills faster.",
+    sub: "Pre-warming backups for tomorrow’s high-risk shifts — so when callouts fire, Phoebe’s Scheduler fills faster.",
   },
   filters: {
     all: "All zones",
@@ -37,7 +37,7 @@ export const COPY = {
     inflight: "Pinging backups…",
     confirmed: "Backup confirmed",
     rationale:
-      "Sentinel hands the chain to the Scheduler agent. No mass blast — three named backups in priority order.",
+      "Sentinel hands the chain to Phoebe’s Scheduler. No mass blast — three named backups in priority order.",
   },
   drilldown: {
     factorsTitle: "Why this shift is flagged",
@@ -46,11 +46,13 @@ export const COPY = {
     escalate: "Escalate to on-call",
     resolve: "Mark resolved",
     reassign: "Reassign now",
+    illustrative:
+      "Demo prototype — actions are illustrative. In production these route to Phoebe’s Scheduler agent.",
   },
   about: {
     title: "How Sentinel scores a shift",
     intro:
-      "Sentinel doesn’t replace the reactive Scheduler. It pre-warms the same backup chain twelve hours earlier — so when the callout fires, the Scheduler is filling from a pool of already-confirmed people instead of cold-paging fifty caregivers from scratch. Same agents. Warmer pool. Higher fill rate. Shorter time-to-fill.",
+      "Sentinel doesn’t replace Phoebe’s reactive Scheduler. It pre-warms the same backup chain twelve hours earlier — so when the callout fires, the Scheduler is filling from a pool of already-confirmed people instead of cold-paging fifty caregivers from scratch. Same agents. Warmer pool. Higher fill rate. Shorter time-to-fill.",
     notMl:
       "There is no model training here. The score is a weighted sum of six factors a coordinator already tracks in their head. It’s a queue ranker, not a forecaster — its job is to surface which shifts are worth pre-warming tonight, not to predict callouts in absolute terms.",
     weightsTitle: "The six factors",
@@ -58,10 +60,19 @@ export const COPY = {
   },
   roi: {
     headline: "What pre-warming changes",
+    framing:
+      "Sentinel feeds Phoebe’s Scheduler a warmer pool — earlier signal, same agent, same channels.",
     money: "tighter time-to-fill",
     contract: "on the shifts the Scheduler is already going to chase hardest",
     fineprint:
       "Industry callout rate runs ~10% / month (Activated Insights, 2024). Phoebe's reactive fill is 75% in <15 min today. Sentinel's open question: how much of the remaining 25% is predictable enough the night before to be worth pre-warming? Two assumptions drive the math — predictable subset and pre-warm conversion — and only Phoebe's own data answers either.",
+  },
+  ehr: {
+    aboutTitle: "Where this lives in production",
+    aboutBody:
+      "Phoebe lives inside the EHR each agency already runs — HHAeXchange, WellSky, AxisCare, and the rest of the 14-plus integrations Phoebe ships with. Sentinel is the signal layer that flows into that surface. The score, the chain, and the morning queue all show up where the coordinator already works. This Vercel build is a standalone visualization of the signal so the scoring logic and pre-warm chain are inspectable on their own.",
+    footer:
+      "In production: signal flows into Phoebe’s coordinator surface inside HHAeXchange, WellSky, AxisCare, and the other EHRs Phoebe integrates with.",
   },
   pageTitles: {
     dashboard: "Tomorrow's risk view",
@@ -70,14 +81,15 @@ export const COPY = {
   },
   agentLog: {
     init: (n: number) =>
-      `Sentinel handed the chain to the Scheduler. ${n} backups in priority order.`,
+      `Sentinel handed the chain to Phoebe’s Scheduler. ${n} backups in priority order.`,
     pinging: (name: string, channel: string) =>
       `pinging ${name} via ${channel}…`,
     response: (name: string, msg: string) =>
       `${name}: "${msg}"`,
     confirmed: (name: string) =>
       `${name} confirmed. Holding shift open as backup.`,
-    nextStep: "Sentinel will only escalate if the primary actually misses check-in.",
+    nextStep:
+      "Sentinel will only escalate if the primary actually misses check-in.",
   },
   morning: {
     eyebrow: "this morning",
@@ -89,8 +101,10 @@ export const COPY = {
       needsCount: number
     ) =>
       `${weekday}, ${time}. Last night, ${prewarmed} ${prewarmed === 1 ? "shift" : "shifts"} pre-warmed. ${confirmed} ${confirmed === 1 ? "chain" : "chains"} confirmed. ${needsCount} need${needsCount === 1 ? "s" : ""} you.`,
+    headlineQuiet: (weekday: string, time: string, prewarmed: number) =>
+      `${weekday}, ${time}. Last night, ${prewarmed} ${prewarmed === 1 ? "shift" : "shifts"} pre-warmed. Every chain settled cleanly. Nothing on you.`,
     sub:
-      "These are the shifts the chain didn’t close cleanly. The Scheduler held the queue open. You take it from here.",
+      "These are the shifts the chain didn’t close cleanly. Phoebe’s Scheduler held the queue open. You take it from here.",
     needsHeader: "Needs you",
     rowFailed: "Chain came back empty. No backup confirmed.",
     rowPartial: (name: string) =>
@@ -99,7 +113,7 @@ export const COPY = {
     rowMarkResolved: "Mark resolved",
     emptyClean: "Quiet morning. Every chain settled cleanly overnight.",
     emptyCleanSub:
-      "Sentinel handed the queue to the Scheduler. Nothing on you right now.",
+      "Sentinel handed the queue to Phoebe’s Scheduler. Nothing on you right now.",
   },
   yesterday: {
     eyebrow: "yesterday",
@@ -118,9 +132,9 @@ export const COPY = {
   },
   activityLog: {
     eyebrow: "last night",
-    title: "What the Scheduler did overnight",
+    title: "What Phoebe’s Scheduler did overnight",
     sub:
-      "Every ping, every response, every chain handoff. The audit trail behind the morning state above.",
+      "Every ping, every response, every chain handoff — the audit trail behind the morning state above. Receptionist and Timekeeper handle their own lanes; this is just the Scheduler’s queue.",
     emptyState:
       "Sentinel didn't pre-warm anything last night. The queue was clear.",
   },
@@ -130,7 +144,10 @@ export const COPY = {
     sub: (high: number) =>
       `${high} shift${high === 1 ? "" : "s"} flagged for tonight's 9pm pre-warm. Filter, sort, drill in.`,
     whenItFires:
-      "These will fire tonight. The Scheduler queues them at 9pm sharp.",
+      "These will fire tonight. Phoebe’s Scheduler queues them at 9pm sharp.",
+  },
+  footer: {
+    timezone: "All times America/New_York.",
   },
 };
 

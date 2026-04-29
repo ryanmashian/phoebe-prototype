@@ -270,6 +270,13 @@ NAMED_CLIENTS.forEach((c, i) => {
 });
 
 const usedClientNames = new Set(NAMED_CLIENTS.map((c) => c.name));
+// Pre-register the today-named-client full names so the procedural pool below
+// doesn't randomly land on one of them. KEEP IN SYNC with TODAY_NAMED_CLIENTS.
+[
+  "Frederick Mancini", "Henrietta Park", "Reginald Pierre", "Calvin Murphy",
+  "Geraldine Cohen", "Cecilia Núñez", "Theodore Rivera", "Bertha Schwartz",
+].forEach((n) => usedClientNames.add(n));
+
 let nextClientId = NAMED_CLIENTS.length + 1;
 while (nextClientId <= 200) {
   const name = `${pick(CLIENT_FIRSTS)} ${pick(CLIENT_LASTS)}`;
@@ -371,12 +378,18 @@ insertPrewarm.run(7, 10, 2, "voice", isoAt(0, 18, 50), isoAt(0, 18, 54), "availa
 // These power the morning state. Eight Wednesday shifts with chain outcomes
 // from Tuesday evening: 6 confirmed, 1 partial (last-position confirmed
 // late), 1 failed (chain came back empty → "needs you").
+// Names below are deliberately picked to avoid first-name overlap with the
+// caregiver pool (FIRSTS) — earlier seed iterations had Imelda/Carmen/Patrice/
+// Marisol clients colliding with caregivers of the same first name, which
+// muddied the agent log narrative ("Pinged X for Imelda's shift" vs. an
+// equally-named backup caregiver). Frederick/Henrietta/Calvin/Geraldine come
+// from CLIENT_FIRSTS only.
 const TODAY_NAMED_CLIENTS = [
-  { name: "Imelda Castillo",   zone: "Brooklyn-Crown Heights", plan: "HHA 6hr daily",      note: "Recent hospital discharge. Watch for fatigue." },
-  { name: "Carmen Hernández",  zone: "Brooklyn-Bed Stuy",      plan: "Companion 4hr Mon/Wed/Fri", note: "Mild cognitive impairment. Needs same caregiver if possible." },
+  { name: "Frederick Mancini", zone: "Brooklyn-Crown Heights", plan: "HHA 6hr daily",      note: "Recent hospital discharge. Watch for fatigue." },
+  { name: "Henrietta Park",    zone: "Brooklyn-Bed Stuy",      plan: "Companion 4hr Mon/Wed/Fri", note: "Mild cognitive impairment. Needs same caregiver if possible." },
   { name: "Reginald Pierre",   zone: "Bronx-East",             plan: "HHA 8hr Mon-Fri",    note: "Diabetic — meal log required by 11am." },
-  { name: "Patrice Lemaire",   zone: "Brooklyn-Flatbush",      plan: "PCA 5hr daily",      note: "Daughter calls Sundays. Hard of hearing." },
-  { name: "Marisol Thiam",     zone: "Bronx-Mott Haven",       plan: "HHA 4hr daily",      note: "Walker assist. Building elevator broken since Tuesday." },
+  { name: "Calvin Murphy",     zone: "Brooklyn-Flatbush",      plan: "PCA 5hr daily",      note: "Daughter calls Sundays. Hard of hearing." },
+  { name: "Geraldine Cohen",   zone: "Bronx-Mott Haven",       plan: "HHA 4hr daily",      note: "Walker assist. Building elevator broken since Tuesday." },
   { name: "Cecilia Núñez",     zone: "Brooklyn-Crown Heights", plan: "Dementia care 8hr daily", note: "Spouse is primary contact." },
   { name: "Theodore Rivera",   zone: "Bronx-Fordham",          plan: "HHA 6hr daily",      note: "Routine matters. Recent hospital readmission scare." },
   { name: "Bertha Schwartz",   zone: "Manhattan-Inwood",       plan: "Live-in support 6 days", note: "Primary caregiver out indefinitely. Backup-only coverage this week." },
@@ -652,7 +665,7 @@ insertOutcome.run(
   Math.min(calloutsByDate.get(yesterday) ?? 5, 5), // filled <5min
   0,                                           // missed
   12,                                          // baseline minutes
-  "Quiet morning. Two of three pre-warm escalations resolved via Sade and Leticia."
+  "Quiet morning. Two of three pre-warm escalations cleared at the second backup."
 );
 
 // Prior 13 days. Variance is real — some days every callout was caught,

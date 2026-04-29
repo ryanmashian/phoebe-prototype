@@ -36,7 +36,7 @@ export const FACTOR_CONFIG: FactorConfig[] = [
   },
   {
     key: "days_since_off",
-    label: "Days since last day off",
+    label: "Days since rest",
     weight: 20,
     rationale:
       "Past five consecutive days, callout probability climbs sharply. By day seven it roughly doubles. Pairs with hours-vs-ceiling — together they catch the burnout cluster.",

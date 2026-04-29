@@ -18,9 +18,9 @@ export function RoiFooter({ highRiskCount }: RoiFooterProps) {
             night it matters most.
           </div>
           <p className="mt-2 text-[13px] text-ink-muted max-w-[60ch]">
-            Sentinel multiplies the existing Scheduler. By pre-warming three backups
-            for the {highRiskCount} highest-risk shifts each night, the Scheduler
-            fills from a warmer pool when callouts fire — net{" "}
+            {COPY.roi.framing} By pre-warming three backups for the{" "}
+            {highRiskCount} highest-risk shifts each night, the Scheduler fills
+            from a warmer pool when callouts fire — net{" "}
             <span className="font-medium text-ink">{COPY.roi.money}</span>,{" "}
             {COPY.roi.contract}.
           </p>
